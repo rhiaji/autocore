@@ -25,7 +25,7 @@ function AccountAdds() {
 
 	async function fetchAccountData(accountName) {
 		try {
-			const response = await fetch(`http://terracore.herokuapp.com/player/${accountName}`)
+			const response = await fetch(`https://terracore.herokuapp.com/player/${accountName}`)
 			const data = await response.json()
 
 			// Assuming you have setTotalAccounts, setScrapDay, setScrapMonth, and setHiveMonth functions
@@ -77,7 +77,7 @@ function AccountAdds() {
 		localStorage.setItem("accounts", JSON.stringify([...accounts, accountName]))
 
 		try {
-			const response = await fetch(`http://terracore.herokuapp.com/player/${accountName}`)
+			const response = await fetch(`https://terracore.herokuapp.com/player/${accountName}`)
 			const data = await response.json()
 
 			// Check if the account is already rendered
