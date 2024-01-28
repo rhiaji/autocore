@@ -1,0 +1,3 @@
+function getAccount(accountName) {
+	fetch(``)
+}
