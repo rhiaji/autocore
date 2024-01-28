@@ -136,7 +136,15 @@ function AccountPage() {
 										</button>
 									</>
 								) : (
-									<p>0</p>
+									<>
+										0
+										<button>
+											<FontAwesomeIcon icon={faPaperPlane} width={20} height={20} />
+										</button>
+										<button onClick={scrap}>
+											<FontAwesomeIcon icon={faShop} width={20} height={20} />
+										</button>
+									</>
 								)}
 							</div>
 							<div>
@@ -152,7 +160,15 @@ function AccountPage() {
 										</button>
 									</>
 								) : (
-									<p>0</p>
+									<>
+										0
+										<button>
+											<FontAwesomeIcon icon={faPaperPlane} width={20} height={20} />
+										</button>
+										<button onClick={flux}>
+											<FontAwesomeIcon icon={faShop} width={20} height={20} />
+										</button>
+									</>
 								)}
 							</div>
 						</div>
