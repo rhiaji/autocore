@@ -2,15 +2,21 @@
 import React, { useState, useEffect } from 'react'
 import styles from '@/app/css/AccountAdds.module.css'
 
+const SSC = require('sscjs')
+const ssc = new SSC('https://api2.hive-engine.com/rpc')
+
 function AccountAdds() {
     // State for account-related data
     const [accountName, setAccountName] = useState('')
     const [totalAccounts, setTotalAccounts] = useState(0)
     const [scrapDay, setScrapDay] = useState(0)
     const [scrapMonth, setScrapMonth] = useState(0)
-    const [hiveMonth, setHiveMonth] = useState(0)
+    const [scrapsToClaim, setScrapsToClaim] = useState(0)
     const [accounts, setAccounts] = useState([])
     const [jsonAccountsData, setJsonAccountsData] = useState([])
+    const [alt, setAlt] = useState(null)
+    const [balance, setBalance] = useState([])
+    const [showAlt, setShowAlt] = useState(false)
 
     // Load 'accounts' from localStorage on component mount
     useEffect(() => {
@@ -19,6 +25,9 @@ function AccountAdds() {
     }, [])
 
     function showAccounts() {
+        // Clear existing data
+        setJsonAccountsData([])
+
         accounts.forEach((accountName) => {
             fetchAccountData(accountName)
         })
@@ -34,12 +43,8 @@ function AccountAdds() {
             setTotalAccounts((prevTotal) => prevTotal + 1)
             setScrapDay((prevScrapDay) => prevScrapDay + data.minerate * 60 * 60 * 24)
             setScrapMonth((prevScrapMonth) => prevScrapMonth + data.minerate * 60 * 60 * 24 * 30)
+            setScrapsToClaim((preScrapsToClaim) => preScrapsToClaim + data.scrap)
 
-            // Calculate Hive payment per month
-            let hiveMonth = totalAccounts >= 3 ? 6 + totalAccounts - 3 : 5
-            setHiveMonth(hiveMonth)
-
-            // Render the account after fetching data
             renderAccount(data)
         } catch (error) {
             console.error('Error fetching player data:', error)
@@ -86,12 +91,57 @@ function AccountAdds() {
         }
     }
 
-    // Delete an account
-    function deleteAccount(index) {
-        const updatedAccounts = accounts.filter((_, i) => i !== index)
+    // Delete an account by name
+    function deleteAccount(accountName) {
+        const updatedAccounts = accounts.filter((name) => name !== accountName)
 
         localStorage.setItem('accounts', JSON.stringify(updatedAccounts))
         setAccounts(updatedAccounts)
+    }
+
+    const getBalances = async (account) => {
+        return new Promise((resolve, reject) => {
+            ssc.find('tokens', 'balances', { account }, 1000, 0, [], (err, result) => {
+                if (err) {
+                    reject(err)
+                    return
+                }
+
+                let bal = []
+
+                result.forEach((element) => {
+                    const SYMBOL = element.symbol
+                    if (element.symbol != null) {
+                        if (SYMBOL === 'SCRAP' || SYMBOL === 'FLUX') {
+                            const jsonData = {
+                                symbol: SYMBOL,
+                                balance: element.balance,
+                                stake: element.stake,
+                            }
+                            bal.push({ ...jsonData }) // Create a shallow copy to avoid circular references
+                        }
+                    }
+                })
+
+                resolve(bal)
+            })
+        })
+    }
+
+    async function altAccount(accountName) {
+        try {
+            const response = await fetch(`https://terracore.herokuapp.com/player/${accountName}`)
+            const data = await response.json()
+
+            const balances = await getBalances(accountName)
+            setBalance(balances)
+
+            setAlt(data)
+            setShowAlt(true)
+        } catch (error) {
+            console.error('Error fetching player data:', error)
+            // Handle the error if needed
+        }
     }
 
     // Log the current jsonAccountsData state
@@ -129,8 +179,9 @@ function AccountAdds() {
                             <p>{scrapMonth}</p>
                         </div>
                         <div className={styles.box}>
-                            Payment / Month
-                            <p>{hiveMonth} Hive</p>
+                            Scraps To Claim
+                            <p>{scrapsToClaim.toFixed(3)} SCRAPS</p>
+                            <button>Claim All</button>
                         </div>
                     </div>
 
@@ -149,19 +200,85 @@ function AccountAdds() {
                         <tbody>
                             {jsonAccountsData.map((account, index) => (
                                 <tr key={index}>
-                                    <td>{account.name}</td>
+                                    <td>
+                                        <button onClick={() => altAccount(account.name)}>{account.name}</button>
+                                    </td>
                                     <td>{account.scrap}</td>
                                     <td>{account.engineering}</td>
                                     <td>{account.defense}</td>
                                     <td>{account.damage}</td>
                                     <td>{account.lastUpgrade}</td>
                                     <td>
-                                        <button onClick={() => deleteAccount(index)}>Delete</button>
+                                        <button onClick={() => deleteAccount(account.name)}>Delete</button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
+                </div>
+                <div className={styles.overlay} style={{ display: showAlt ? 'flex' : 'none' }}>
+                    {alt && (
+                        <div className={styles.boxAlt}>
+                            <div className={styles.altHeader}>
+                                <span>{alt.username}'s Account</span>
+                                <button onClick={() => setShowAlt(false)}>Close</button>
+                            </div>
+                            <div className={styles.altStats}>
+                                <div className={styles.dataBox}>
+                                    <p>Level {alt?.level}</p>
+                                    <p>
+                                        <span className={styles.white}>Stash:</span> {Number(alt?.scrap).toFixed(3)}{' '}
+                                        <span className={styles.gray}>SCRAP</span>
+                                    </p>
+                                    <p>
+                                        <span className={styles.gray}>Claims :</span> {alt?.claims} <span className={styles.gray}>Attacks :</span>{' '}
+                                        {alt?.attacks}
+                                    </p>
+                                </div>
+                                <div className={styles.dataBox}>
+                                    <p>
+                                        +{Number(alt?.stats.dodge).toFixed(3)}% <span className={styles.gray}>Dodge</span>
+                                    </p>
+                                    <p>
+                                        +{Number(alt?.stats.luck).toFixed(3)}% <span className={styles.gray}>Luck</span>
+                                    </p>
+                                </div>
+                                <div className={styles.dataBox}>
+                                    <p>
+                                        <span className={styles.white}>Stash Size:</span> {Number(balance[0]?.stake).toFixed(3)}
+                                    </p>
+                                    <p>
+                                        <span className={styles.white}>Favor:</span> {Number(alt?.favor).toFixed(3)}
+                                    </p>
+                                    <p>
+                                        +{Number(alt?.stats.crit).toFixed(3)}% <span className={styles.gray}>Crit</span>
+                                    </p>
+                                </div>
+                                <div className={styles.dataBox}>
+                                    <p>
+                                        <span className={styles.white}>Engineering:</span> {alt?.engineering}
+                                    </p>
+
+                                    <p>
+                                        <span className={styles.gray}>Minerate: </span>
+                                        {Number(alt?.minerate * 60 * 60).toFixed(3)}/h
+                                    </p>
+                                </div>
+                                <div className={styles.dataBox}>
+                                    <p>
+                                        <span className={styles.white}>Damage</span>
+                                    </p>
+                                    <p>{alt?.stats.damage}</p>
+                                </div>
+                                <div className={styles.dataBox}>
+                                    <p>
+                                        <span className={styles.white}>Defense</span>
+                                    </p>
+                                    <p>{alt?.stats.defense}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
