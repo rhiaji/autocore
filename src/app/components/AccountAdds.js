@@ -154,14 +154,18 @@ function AccountAdds() {
                     <div className={styles.multi}>
                         <h1>Multi Account Dashboard</h1>
                         <div className={styles.add}>
-                            <label htmlFor="accountName">Account Name: </label>
-                            <input type="text" id="accountName" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
-                            <button type="button" onClick={addAccount}>
-                                Add Account
-                            </button>
-                            <button type="button" onClick={showAccounts}>
-                                Show Accounts
-                            </button>
+                            <div>
+                                <label htmlFor="accountName">Account Name: </label>
+                                <input type="text" id="accountName" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
+                            </div>
+                            <div>
+                                <button type="button" onClick={addAccount}>
+                                    Add Account
+                                </button>
+                                <button type="button" onClick={showAccounts}>
+                                    Show Accounts
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -184,37 +188,38 @@ function AccountAdds() {
                             <button>Claim All</button>
                         </div>
                     </div>
-
-                    <table id="accountTable" className={styles.dashboard}>
-                        <thead>
-                            <tr>
-                                <th>Account</th>
-                                <th>Scrap</th>
-                                <th>Engineering</th>
-                                <th>Defense</th>
-                                <th>Damage</th>
-                                <th>Last Upgrade Time</th>
-                                <th>Options</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {jsonAccountsData.map((account, index) => (
-                                <tr key={index}>
-                                    <td>
-                                        <button onClick={() => altAccount(account.name)}>{account.name}</button>
-                                    </td>
-                                    <td>{account.scrap}</td>
-                                    <td>{account.engineering}</td>
-                                    <td>{account.defense}</td>
-                                    <td>{account.damage}</td>
-                                    <td>{account.lastUpgrade}</td>
-                                    <td>
-                                        <button onClick={() => deleteAccount(account.name)}>Delete</button>
-                                    </td>
+                    <div className={styles.dashboard}>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Scrap</th>
+                                    <th>Engineering</th>
+                                    <th>Defense</th>
+                                    <th>Damage</th>
+                                    <th>Last Upgrade Time</th>
+                                    <th>Options</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {jsonAccountsData.map((account, index) => (
+                                    <tr key={index}>
+                                        <td>
+                                            <button onClick={() => altAccount(account.name)}>{account.name}</button>
+                                        </td>
+                                        <td>{account.scrap}</td>
+                                        <td>{account.engineering}</td>
+                                        <td>{account.defense}</td>
+                                        <td>{account.damage}</td>
+                                        <td>{account.lastUpgrade}</td>
+                                        <td>
+                                            <button onClick={() => deleteAccount(account.name)}>Delete</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div className={styles.overlay} style={{ display: showAlt ? 'flex' : 'none' }}>
                     {alt && (
@@ -237,6 +242,9 @@ function AccountAdds() {
                                 </div>
                                 <div className={styles.dataBox}>
                                     <p>
+                                        <span className={styles.white}>Stash Size:</span> {Number(balance[0]?.stake).toFixed(3)}
+                                    </p>
+                                    <p>
                                         +{Number(alt?.stats.dodge).toFixed(3)}% <span className={styles.gray}>Dodge</span>
                                     </p>
                                     <p>
@@ -244,9 +252,6 @@ function AccountAdds() {
                                     </p>
                                 </div>
                                 <div className={styles.dataBox}>
-                                    <p>
-                                        <span className={styles.white}>Stash Size:</span> {Number(balance[0]?.stake).toFixed(3)}
-                                    </p>
                                     <p>
                                         <span className={styles.white}>Favor:</span> {Number(alt?.favor).toFixed(3)}
                                     </p>
